@@ -6,9 +6,9 @@
 ### 2.rowの編集アイコン．削除.追加.移動.背景色の変更
 [apple SFシンボル](https://developer.apple.com/design/human-interface-guidelines/sf-symbols/overview/)
   
-## 2)tapAction
+## 2)実装したtapAction
 ### 1.rowの移動
-### 2.rowの新規登録用のアラート画面
+### 2.rowのcellのテキスト　新規．編集登録．アラート画面
   
 ## 3)データ更新
 ### 1.userdefaultsへの保存と更新
@@ -16,6 +16,7 @@
 ### 3.nilの時のエラーを防ぐ
 
 
+# 参考
 [UITableViewDelegateプロトコル](https://secondflush2.blog.fc2.com/blog-entry-951.html)
 アクションの実行に関する設定をする
 　　
