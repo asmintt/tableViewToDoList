@@ -20,8 +20,8 @@
   
 <br>
 
-## 参考
+##### 参考
+##### アクションの実行に関する設定をする  
 [UITableViewDelegateプロトコル](https://secondflush2.blog.fc2.com/blog-entry-951.html)
-#### アクションの実行に関する設定をする  
+##### tableViewのデータに関する設定をする．section.cell.row
 [UITableViewDataSourceプロトコル](https://secondflush2.blog.fc2.com/blog-entry-952.html)
-#### tableViewのデータに関する設定をする．section.cell.row
