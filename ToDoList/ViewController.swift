@@ -37,7 +37,7 @@ class ViewController: UIViewController {
         }
     }
     @IBAction func addSectionButton(_ sender: Any) {
-        rowArray.append([])
+        rowArray.append(["new item"])
         UserDefaults.standard.set( self.rowArray, forKey: "rowArray")
         if let text = textField.text {
             sectionArray.append(text)
