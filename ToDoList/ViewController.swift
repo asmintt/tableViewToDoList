@@ -4,6 +4,44 @@
 //
 //  Created by user on 2022/03/03.
 //
+//5.7追加　sectionのrowを開閉する機能
+/*出来なかった事→section単位での開閉．
+ structと辞書型使ったサンプル．エラー
+ 実例コードを見て開閉まではできたが，セルの移動や保存のコードの書き換えがうまくできず．
+ エラー解消できなかった
+ 
+ struct expand {
+ var isOpened: Bool
+ var rowitem: [String]
+ }
+ var rowArray = [
+ expand(isOpened: true, rowitem: ["0","1"]),
+ expand(isOpened: true, rowitem: ["2","3"]),
+ expand(isOpened: true, rowitem:["4","5","6"])
+ ]
+ userdefaultに，structの型で保存しようとするとエラー．Codable？
+ https://qiita.com/uhooi/items/429cac9b798b9c0937ae
+ extension expand : Codable {}
+ 
+ // indicesはどんな時に使う？printしたら0...3とか範囲で出てきた．
+ var indexPaths = [IndexPath]()
+ for row in rowArray[section].rowitem.indices {
+ let indexPath = IndexPath(row: row, section: section)
+ indexPaths.append(indexPath)
+ }
+ 
+ // タップするたびに，true falseを反転させる
+ let isOpened = rowArray[section].isOpened
+ rowArray[section].isOpened = !isOpened
+ print(rowArray[section].isOpened,indexPaths)
+ 
+ button.setTitle(isOpened ? "Open" : "Close", for: .normal)
+ 
+ 
+ 
+ */
+
+
 import UIKit
 
 class ViewController: UIViewController {
@@ -19,6 +57,14 @@ class ViewController: UIViewController {
             tableView?.reloadData()
         }
     }
+    
+    var isOpened = true{
+        didSet {
+            tableView?.reloadData()
+        }
+    }
+    
+    
     
     @IBOutlet weak var tableView: UITableView!
     @IBOutlet weak var textField: UITextField! {
@@ -36,6 +82,8 @@ class ViewController: UIViewController {
             sectionButton.setTitle("add", for: .normal)
         }
     }
+    
+    // sectionデータを追加するときに，rowデータも追加する
     @IBAction func addSectionButton(_ sender: Any) {
         rowArray.append(["new item"])
         UserDefaults.standard.set( self.rowArray, forKey: "rowArray")
@@ -45,19 +93,21 @@ class ViewController: UIViewController {
             tableView?.reloadData()
         }
     }
+    
+    // userDefaultsの保存データをリセットするボタンアクション
     @IBAction func resetUserDefaultAction(_ sender: Any) {
         let appDomain = Bundle.main.bundleIdentifier
         UserDefaults.standard.removePersistentDomain(forName: appDomain!)
         tableView?.reloadData()
     }
     
-    
     override func viewDidLoad() {
         super.viewDidLoad()
-//         UserDefaultsDataをクリアして起動する時のテスト用コード
-//         let appDomain = Bundle.main.bundleIdentifier
-//         UserDefaults.standard.removePersistentDomain(forName: appDomain!)
-
+        
+        //         UserDefaultsDataをクリアして起動する時のテスト用コード
+        //         let appDomain = Bundle.main.bundleIdentifier
+        //         UserDefaults.standard.removePersistentDomain(forName: appDomain!)
+        
         if UserDefaults.standard.object(forKey: "rowArray") != nil {
             rowArray = UserDefaults.standard.object(forKey: "rowArray") as! [[String?]]
         }
@@ -80,6 +130,7 @@ extension ViewController: UITableViewDelegate {
     func tableView(_ tableView: UITableView, moveRowAt sourceIndexPath: IndexPath, to destinationIndexPath: IndexPath) {
         let itemToMove = rowArray[sourceIndexPath.section].remove(at: sourceIndexPath.row)
         rowArray[sourceIndexPath.section].insert(itemToMove, at: destinationIndexPath.row)
+        
         UserDefaults.standard.set( rowArray, forKey: "rowArray")
     }
     
@@ -97,7 +148,7 @@ extension ViewController: UITableViewDelegate {
                 
                 self.rowArray.remove(at: indexPath.section)
                 UserDefaults.standard.set( self.rowArray, forKey: "rowArray")
-              // print("true",self.rowArray,self.sectionArray)
+                // print("true",self.rowArray,self.sectionArray)
             }
             completionHandler(true)
         }
@@ -191,30 +242,34 @@ extension ViewController: UITableViewDelegate {
     }
 }
 
+
 extension ViewController: UITableViewDataSource {
-    // 必須． それぞれのセクションのrowの数を返すメソッド
-    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return rowArray[section].count
+    // 必須メソッド．セル
+    func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+        let cell = UITableViewCell();
+        var content = cell.defaultContentConfiguration();
+        content.text =  rowArray[indexPath.section][indexPath.row]
+        cell.contentConfiguration = content;
+        print("cell",[indexPath.section],rowArray[indexPath.section][indexPath.row] ?? "")
+        return cell
     }
-    
     //表示するセクションの数を返すメソッド
     func numberOfSections(in tableView: UITableView) -> Int {
         return sectionArray.count
     }
-    // セクションをヘッダー表示するメソッド．引数のsectionは、何番目のセクションかを判別するためのIntegerが渡される
-    func tableView(_ tableView: UITableView, titleForHeaderInSection section: Int) -> String? {
-        if let char = sectionArray[section] {
-            return String(char)
-        }
-        return nil
-    }
-    // headerの見た目
+    
     func tableView(_ tableView: UITableView, willDisplayHeaderView view: UIView, forSection section: Int) {
         view.tintColor = .systemFill
-        // rowの削除.追加.移動の後に表示が..と崩れるのでコメントアウト
-//         let header = view as! UITableViewHeaderFooterView
-//         header.textLabel?.textColor = .black
-//         header.textLabel?.font = UIFont.systemFont(ofSize: 20.0)
+    }
+    
+    // 必須． それぞれのセクションのrowの数を返すメソッド isOpenedがfalseならrow数は0
+    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+        
+        if isOpened {
+            return rowArray[section].count
+        } else {
+            return 0
+        }
     }
     // セクション索引．最初の1文字だけ．
     func sectionIndexTitles(for tableView: UITableView) -> [String]? {
@@ -226,13 +281,31 @@ extension ViewController: UITableViewDataSource {
         }
     }
     
-    // 必須メソッド．セル
-    func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        let cell = UITableViewCell();
-        var content = cell.defaultContentConfiguration();
-        content.text =  rowArray[indexPath.section][indexPath.row]
-        cell.contentConfiguration = content;
-        print("cell",[indexPath.section],rowArray[indexPath.section][indexPath.row] ?? "")
-        return cell
+    // sectionにexpand機能を追加するメソッド
+    func tableView(_ tableView: UITableView, viewForHeaderInSection section: Int) -> UIView? {
+        
+        let button = UIButton(type: .system)
+        button.setTitleColor(.black, for: .normal)
+        button.setTitle("\(sectionArray[section]!)", for:  .normal)
+        button.backgroundColor = .yellow
+        button.titleLabel?.font = UIFont.boldSystemFont(ofSize: 14)
+        
+        button.addTarget(self, action: #selector(handleExpandClose), for: .touchUpInside)
+        button.tag = section
+        return button
+    }
+    
+    @objc func handleExpandClose(button: UIButton) {
+        // tag ボタン判別用
+        let section = button.tag
+        // タップするたびに，true falseを反転させる
+        isOpened = !isOpened
+        
+        if isOpened == true {
+            button.setTitle("\(sectionArray[section]!)", for: .normal)
+        } else {
+            button.setTitle("close", for: .normal)
+        }
+        
     }
 }
